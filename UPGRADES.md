@@ -19,3 +19,8 @@ deploying it. `Configure` now carries only the ordinary and meta socket paths:
 the owning Orchestrate Nexus derives its Sema store path locally. The former
 store-path field and `StorePathImmutable` refusal are removed, with no
 compatibility decoder or migration.
+# 1.0.0 to 1.1.0
+
+The privileged contract uses the ordinary contract's shared Nexus
+configuration, reports the persistent lifecycle receipt, and adds the sole
+operation that reopens ordinary configuration.

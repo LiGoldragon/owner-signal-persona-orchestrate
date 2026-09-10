@@ -1,46 +1,40 @@
 #![allow(dead_code, non_camel_case_types, non_snake_case)]
-pub type OrdinarySocketPath = String;
-pub type MetaSocketPath = String;
+#[rustfmt::skip]
 #[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq)]
 #[cfg_attr(
     feature = "datom",
     derive(datom_codec::Datomizable, datom_codec::Compositional)
 )]
-pub struct Configure {
-    pub ordinary_socket_path: OrdinarySocketPath,
-    pub meta_socket_path: MetaSocketPath,
-}
-#[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq)]
-#[cfg_attr(
-    feature = "datom",
-    derive(datom_codec::Datomizable, datom_codec::Compositional)
-)]
-pub enum ConfigurationRefusal {
+pub enum ConfigurationRejectionReason {
     InvalidConfiguration,
 }
+#[rustfmt::skip]
 #[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq)]
 #[cfg_attr(
     feature = "datom",
     derive(datom_codec::Datomizable, datom_codec::Compositional)
 )]
 pub struct ConfigurationRejection {
-    pub configure: Configure,
-    pub configuration_refusal: ConfigurationRefusal,
+    pub configuration_rejection_reason: ConfigurationRejectionReason,
 }
+#[rustfmt::skip]
 #[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq)]
 #[cfg_attr(
     feature = "datom",
     derive(datom_codec::Datomizable, datom_codec::Compositional)
 )]
 pub enum Query {
-    Configure(Configure),
+    Configure(signal_orchestrate::OrchestrateNexusConfiguration),
+    ReverseMetaConfiguration,
 }
+#[rustfmt::skip]
 #[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq)]
 #[cfg_attr(
     feature = "datom",
     derive(datom_codec::Datomizable, datom_codec::Compositional)
 )]
 pub enum Response {
-    Configured(Configure),
+    Configured(signal_orchestrate::ConfigurationReceipt),
+    OrdinaryConfigurationReopened(signal_orchestrate::ConfigurationReceipt),
     ConfigurationRejected(ConfigurationRejection),
 }

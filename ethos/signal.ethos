@@ -1,10 +1,8 @@
 ; Orchestrate meta signal — the privileged configuration wire contract.
 Signal
-[]
-[ Configure.Configure ]
-[ Configured.Configure ConfigurationRejected.ConfigurationRejection ]
-[ OrdinarySocketPath.String
-  MetaSocketPath.String
-  Configure.{ OrdinarySocketPath MetaSocketPath }
-  ConfigurationRefusal.[ InvalidConfiguration ]
-  ConfigurationRejection.{ Configure ConfigurationRefusal } ]
+[ signal_orchestrate:[ OrchestrateNexusConfiguration ConfigurationReceipt ] ]
+[ Configure.OrchestrateNexusConfiguration ReverseMetaConfiguration ]
+[ Configured.ConfigurationReceipt OrdinaryConfigurationReopened.ConfigurationReceipt
+  ConfigurationRejected.ConfigurationRejection ]
+[ ConfigurationRejectionReason.[ InvalidConfiguration ]
+  ConfigurationRejection.{ ConfigurationRejectionReason } ]

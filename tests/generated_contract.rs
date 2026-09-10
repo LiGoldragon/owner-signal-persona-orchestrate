@@ -1,10 +1,11 @@
 use meta_signal_orchestrate::{
-    ByteViewable, ConfigurationRefusal, ConfigurationRejection, Configure, Query, Response,
+    ByteViewable, ConfigurationRejection, ConfigurationRejectionReason, Query, Response,
     Restorable, Signal, Signalizable,
 };
+use signal_orchestrate::{ConfigurationReceipt, OrchestrateNexusConfiguration};
 
-fn configure() -> Configure {
-    Configure {
+fn configure() -> OrchestrateNexusConfiguration {
+    OrchestrateNexusConfiguration {
         ordinary_socket_path: "/tmp/orchestrate.sock".into(),
         meta_socket_path: "/tmp/meta-orchestrate.sock".into(),
     }
@@ -18,8 +19,7 @@ fn query_and_response_round_trip_through_fresh_portable_signals() {
     assert_eq!(received.restore().expect("restore query"), query);
 
     let response = Response::ConfigurationRejected(ConfigurationRejection {
-        configure: configure(),
-        configuration_refusal: ConfigurationRefusal::InvalidConfiguration,
+        configuration_rejection_reason: ConfigurationRejectionReason::InvalidConfiguration,
     });
     let response_signal = response.signalize().expect("signalize response");
     let received = Signal::<Response>::from(response_signal.bytes().to_vec());
@@ -45,7 +45,10 @@ fn query_and_response_round_trip_as_datom_text() {
         .expect("restore query datom");
     assert_eq!(query_decoded, query);
 
-    let response = Response::Configured(configure());
+    let response = Response::Configured(ConfigurationReceipt {
+        orchestrate_nexus_configuration: configure(),
+        meta_configure_done: true,
+    });
     let response_text = response.clone().datomize(vec![]).protosize().textualize();
     let mut pending = Potential::<Response>::from(response_text);
     let response_decoded = pending
