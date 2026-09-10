@@ -1,5 +1,5 @@
 {
-  description = "meta-signal-orchestrate - generated MetaSignal Configure contract";
+  description = "meta-signal-orchestrate — generated meta Configure Signal contract";
 
   inputs = {
     nixpkgs.url = "github:NixOS/nixpkgs/nixpkgs-unstable";
@@ -10,15 +10,8 @@
     };
   };
 
-  outputs =
-    {
-      self,
-      nixpkgs,
-      flake-utils,
-      rust-build,
-    }:
-    flake-utils.lib.eachDefaultSystem (
-      system:
+  outputs = { self, nixpkgs, flake-utils, rust-build }:
+    flake-utils.lib.eachDefaultSystem (system:
       let
         pkgs = import nixpkgs { inherit system; };
         rust = rust-build.lib.${system}.fromToolchainFile pkgs {
@@ -26,60 +19,50 @@
           sha256 = "sha256-gh/xTkxKHL4eiRXzWv8KP7vfjSk61Iq48x47BEDFgfk=";
         };
         inherit (rust) craneLib toolchain;
-        examplesFilter = path: _type: builtins.match ".*/examples(/.*)?$" path != null;
         ethosFilter = path: type: type == "regular" && pkgs.lib.hasSuffix ".ethos" path;
-        wireFixtureFilter = path: type: type == "regular" && pkgs.lib.hasSuffix ".bytes" path;
         src = rust.cleanSource {
           root = ./.;
-          extraFilters = [
-            examplesFilter
-            ethosFilter
-            wireFixtureFilter
-          ];
+          extraFilters = [ ethosFilter ];
         };
-        commonArgs = {
-          inherit src;
-          strictDeps = true;
-          nativeBuildInputs = [ pkgs.rustfmt ];
-        };
+        commonArgs = { inherit src; strictDeps = true; nativeBuildInputs = [ pkgs.rustfmt ]; };
         cargoArtifacts = craneLib.buildDepsOnly commonArgs;
       in
       {
         packages.default = craneLib.buildPackage (commonArgs // { inherit cargoArtifacts; });
         checks = {
           build = craneLib.cargoBuild (commonArgs // { inherit cargoArtifacts; });
-          test = craneLib.cargoTest (commonArgs // { inherit cargoArtifacts; });
-          test-generated-contract = craneLib.cargoTest (
-            commonArgs
-            // {
-              inherit cargoArtifacts;
-              cargoTestExtraArgs = "--test contract";
-            }
-          );
-          doc = craneLib.cargoDoc (
-            commonArgs
-            // {
-              inherit cargoArtifacts;
-              RUSTDOCFLAGS = "-D warnings";
-            }
-          );
+          test  = craneLib.cargoTest  (commonArgs // { inherit cargoArtifacts; });
+          test-generated-contract = craneLib.cargoTest (commonArgs // {
+            inherit cargoArtifacts;
+            cargoTestExtraArgs = "--test generated_contract";
+          });
+          test-datom-contract = craneLib.cargoTest (commonArgs // {
+            inherit cargoArtifacts;
+            cargoTestExtraArgs = "--features datom --test generated_contract";
+          });
+          test-doc = craneLib.cargoTest (commonArgs // {
+            inherit cargoArtifacts;
+            cargoTestExtraArgs = "--doc";
+          });
+          doc = craneLib.cargoDoc (commonArgs // {
+            inherit cargoArtifacts;
+            RUSTDOCFLAGS = "-D warnings";
+          });
           fmt = craneLib.cargoFmt { inherit src; };
-          clippy = craneLib.cargoClippy (
-            commonArgs
-            // {
-              inherit cargoArtifacts;
-              cargoClippyExtraArgs = "--all-targets -- -D warnings";
-            }
-          );
+          no-free-functions = pkgs.runCommand "meta-signal-orchestrate-no-free-functions" { inherit src; } ''
+            ${builtins.readFile ./checks/no-free-functions.sh}
+          '';
+          no-inherent-methods = pkgs.runCommand "meta-signal-orchestrate-no-inherent-methods" { inherit src; } ''
+            ${builtins.readFile ./checks/no-inherent-methods.sh}
+          '';
+          clippy = craneLib.cargoClippy (commonArgs // {
+            inherit cargoArtifacts;
+            cargoClippyExtraArgs = "--all-targets -- -D warnings";
+          });
         };
         devShells.default = pkgs.mkShell {
           name = "meta-signal-orchestrate";
-          packages = [
-            pkgs.jujutsu
-            pkgs.pkg-config
-            toolchain
-          ];
+          packages = [ pkgs.jujutsu pkgs.pkg-config toolchain ];
         };
-      }
-    );
+      });
 }

@@ -1,17 +1,10 @@
-; Orchestrate meta signal — the privileged wire contract.
-;
-; Configuration: set socket paths for the Nexus.
-
+; Orchestrate meta signal — the privileged configuration wire contract.
 Signal
-
 []
-
 [ Configure.Configure ]
-
-[ Configured.Configure  ConfigurationRejected.ConfigurationRejection ]
-
-[ OrdinarySocketPath.Text
-  MetaSocketPath.Text
+[ Configured.Configure ConfigurationRejected.ConfigurationRejection ]
+[ OrdinarySocketPath.String
+  MetaSocketPath.String
   Configure.{ OrdinarySocketPath MetaSocketPath }
   ConfigurationRefusal.[ InvalidConfiguration ]
   ConfigurationRejection.{ Configure ConfigurationRefusal } ]
